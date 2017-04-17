@@ -67,11 +67,11 @@ bool InputManager::parse(int argc, char* argv[])
             uint n;
             iss >> n;
 
-           /* if (a < 5 || a > (n / 2))
+            if (a < 5 || a > (n / 2))
 			{
                 cerr << "a must be in range [5, n/2]" << endl;
 				return false;
-            }*/
+            }
 			
             m_problem = new Problem(a, n, t);
 

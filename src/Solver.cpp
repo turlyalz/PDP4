@@ -34,9 +34,9 @@ uint Solver::calculatePrice(const vector<uint>& state, uint startNode) const
     {
         for (uint col = row + 1; col < m_problem->n; ++col)
         {
-            if (m_problem->graph[(row * m_problem->n) + col] &&
-                (row == startNode || col == startNode) &&
-                (binary_search(state.cbegin(), state.cend(), row) != binary_search(state.cbegin(), state.cend(), col)))
+            if ((m_problem->graph[(row * m_problem->n) + col]) &&
+                (row == startNode || col == startNode ||
+                (binary_search(state.cbegin(), state.cend(), row) != binary_search(state.cbegin(), state.cend(), col))))
             {
                 price++;
             }
@@ -63,6 +63,11 @@ shared_ptr<Solution> Solver::run(const Problem* problem, uint startNode)
 
     m_solution.reset(new Solution(m_problem->a));
     m_solution->price = calculatePrice(state, startNode);
+    m_solution->nodes[0] = startNode;
+    for (uint i = 0; i < m_problem->a - 1; ++i)
+    {
+        m_solution->nodes[i + 1] = state[i];
+    }
     ull comb = combinations(m_problem->n, m_problem->a - 1);
 
     cout << "Start price: " << m_solution->price << endl;

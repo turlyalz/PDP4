@@ -19,8 +19,16 @@ int MPIApplication::run(int argc, char **argv)
     // Find out process rank
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    //            Master                        Slave
-    (rank == 0) ? readAndSendData(argc, argv) : receiveData();
+    bool error = false;
+    // Master
+    if (rank == 0)
+    {
+        error = !readAndSendData(argc, argv);
+    }
+    else
+    {
+        receiveData();
+    }
 
     // Initialize Solver
     m_solver.reset(new Solver);
@@ -30,9 +38,12 @@ int MPIApplication::run(int argc, char **argv)
     {
         start = std::chrono::high_resolution_clock::now();
 
-        for (uint i = 0; i < m_problem->n - m_problem->a + 1; ++i)
+        if (!error)
         {
-            m_workQueue.push(i);
+            for (uint i = 0; i < m_problem->n - m_problem->a + 1; ++i)
+            {
+                m_workQueue.push(i);
+            }
         }
     }
     else
@@ -170,7 +181,7 @@ int MPIApplication::run(int argc, char **argv)
     return 0;
 }
 
-void MPIApplication::readAndSendData(int argc, char** argv)
+bool MPIApplication::readAndSendData(int argc, char** argv)
 {
     int processes;
 
@@ -181,20 +192,28 @@ void MPIApplication::readAndSendData(int argc, char** argv)
     std::cout << "Processes: " << processes << std::endl;
 
     std::cout << "-------------------- Bisection width of graph --------------------" << std::endl;
-    if (input->parse(argc, argv))
+
+    bool result = input->parse(argc, argv);
+    if (!result)
+    {
+        m_problem.reset(new Problem(0, 0, 0));
+    }
+    else
     {
         m_problem.reset(input->getProblem());
-        // Sent data to all processes
-        for (int i = 1; i < processes; ++i)
-        {
-            MPI_Send(&m_problem->n, 1, MPI_UNSIGNED, i, MESSAGE_TYPE_N, MPI_COMM_WORLD);
-            MPI_Send(&m_problem->a, 1, MPI_UNSIGNED, i, MESSAGE_TYPE_A, MPI_COMM_WORLD);
-            MPI_Send(&m_problem->t, 1, MPI_UNSIGNED, i, MESSAGE_TYPE_T, MPI_COMM_WORLD);
-            MPI_Send(m_problem->graph, m_problem->n * m_problem->n, MPI_UNSIGNED_SHORT, i, MESSAGE_TYPE_GRAPH, MPI_COMM_WORLD);
-        }
-        std::cout << m_problem.get();
     }
+    // Sent data to all processes
+    for (int i = 1; i < processes; ++i)
+    {
+        MPI_Send(&m_problem->n, 1, MPI_UNSIGNED, i, MESSAGE_TYPE_N, MPI_COMM_WORLD);
+        MPI_Send(&m_problem->a, 1, MPI_UNSIGNED, i, MESSAGE_TYPE_A, MPI_COMM_WORLD);
+        MPI_Send(&m_problem->t, 1, MPI_UNSIGNED, i, MESSAGE_TYPE_T, MPI_COMM_WORLD);
+        MPI_Send(m_problem->graph, m_problem->n * m_problem->n, MPI_UNSIGNED_SHORT, i, MESSAGE_TYPE_GRAPH, MPI_COMM_WORLD);
+    }
+    std::cout << m_problem.get();
     std::cout << "------------------------------------------------------------------" << std::endl;
+
+    return result;
 }
 
 void MPIApplication::receiveData()
@@ -208,5 +227,4 @@ void MPIApplication::receiveData()
 
     m_problem.reset(new Problem(a, n, t));
     MPI_Recv(m_problem->graph, m_problem->n * m_problem->n, MPI_UNSIGNED_SHORT, 0, MESSAGE_TYPE_GRAPH, MPI_COMM_WORLD, &status);
-    std::cout << m_problem.get();
 }

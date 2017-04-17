@@ -45,7 +45,7 @@ private:
 
     std::queue<uint> m_workQueue;
 
-    void readAndSendData(int argc, char** argv);
+    bool readAndSendData(int argc, char** argv);
     void receiveData();
 };
 

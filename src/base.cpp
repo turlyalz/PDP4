@@ -17,6 +17,11 @@ ostream& operator<<(ostream& os, const vector<vector<bool>>& graph)
 
 ostream& operator<<(ostream& os, const Problem* problem)
 {
+    if (!problem)
+    {
+        return os;
+    }
+
     os << "-------------- Problem -------------------------" << endl;
     os << "Number of nodes: " << problem->n << endl;
     os << "A: " << problem->a << endl;
@@ -55,6 +60,11 @@ ostream& operator<<(ostream& os, const vector<T>& vec)
 
 ostream& operator<<(ostream& os, const Solution* solution)
 {
+    if (!solution)
+    {
+        return os;
+    }
+
     os << "-------------- Solution -------------------------" << endl;
     os << "Price: " << solution->price << endl;
     os << "Nodes: " << '{';
