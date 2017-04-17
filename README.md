@@ -1,4 +1,4 @@
-# PDP Task 2
+# PDP Task 4
 Vstupní data:
 
 n = přirozené číslo představující počet uzlů grafu G, n >= 10
@@ -25,7 +25,4 @@ Těsná dolní mez je rovna 1.
 
 Triviální horní mez je rovna m, tj. počet hran.
 
-Paralelní algoritmus:
-
 Paralelní algoritmus je typu Master-Slave.
-# PDP4
