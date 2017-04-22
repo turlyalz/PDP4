@@ -113,7 +113,7 @@ int MPIApplication::run(int argc, char **argv)
                     uint i = 0;
                     MPI_Send(&i, 1, MPI_UNSIGNED, 0, MESSAGE_TYPE_FINISH, MPI_COMM_WORLD);
                     MPI_Send(&solution->price, 1, MPI_UNSIGNED, 0, MESSAGE_TYPE_PRICE, MPI_COMM_WORLD);
-                    MPI_Send(solution->nodes, m_problem->a, MPI_UNSIGNED, i, MESSAGE_TYPE_NODES, MPI_COMM_WORLD);
+                    MPI_Send(solution->nodes, m_problem->a, MPI_UNSIGNED, 0, MESSAGE_TYPE_NODES, MPI_COMM_WORLD);
                     std::cout << "SEND finish from " << rank << " process" << std::endl;
 
                     // Request new work

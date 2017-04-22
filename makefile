@@ -8,4 +8,4 @@ clean:
 	rm -f ./bw.out
 
 run:
-	mpirun bw.out -f data/graph40_6.txt -a 10 -t 2
+	mpirun bw.out -f data/graph12_5.txt -a 6 -t 2
