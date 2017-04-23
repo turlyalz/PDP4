@@ -39,6 +39,8 @@ public:
     };
 
 private:
+    int m_processes;
+
     std::unique_ptr<Problem> m_problem;
     std::unique_ptr<Solver> m_solver;
     std::unique_ptr<Solution> m_solution;

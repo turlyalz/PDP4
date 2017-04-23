@@ -55,9 +55,8 @@ int MPIApplication::run(int argc, char **argv)
 
     MPI_Status status, recv_status;
     int flag = 0;
-    int finishedProcess = 0;
+    int finishedProcess = 1;
     bool running = true;
-
 
     while (running)
     {
@@ -68,12 +67,12 @@ int MPIApplication::run(int argc, char **argv)
             {
                 case MESSAGE_TYPE_WORK_REQUEST:
                 {
+                    uint recv;
+                    MPI_Recv(&recv, 1, MPI_UNSIGNED, status.MPI_SOURCE, MESSAGE_TYPE_WORK_REQUEST, MPI_COMM_WORLD, &recv_status);
+                    std::cout << "RECEIVED work request from " << status.MPI_SOURCE << " process" << std::endl;
+
                     if (!m_workQueue.empty())
                     {
-                        uint recv;
-                        MPI_Recv(&recv, 1, MPI_UNSIGNED, status.MPI_SOURCE, MESSAGE_TYPE_WORK_REQUEST, MPI_COMM_WORLD, &recv_status);
-                        std::cout << "RECEIVED work request from " << status.MPI_SOURCE << " process" << std::endl;
-
                         // Send work as an answer to the request
                         uint startNode = m_workQueue.front();
                         m_workQueue.pop();
@@ -85,9 +84,7 @@ int MPIApplication::run(int argc, char **argv)
                         MPI_Send(&i, 1, MPI_UNSIGNED, status.MPI_SOURCE, MESSAGE_TYPE_NO_WORK, MPI_COMM_WORLD);
                         ++finishedProcess;
 
-                        int processes = -1;
-                        MPI_Comm_size(MPI_COMM_WORLD, &processes);
-                        if (finishedProcess == processes)
+                        if (finishedProcess == m_processes)
                         {
                             running = false;
                         }
@@ -124,6 +121,9 @@ int MPIApplication::run(int argc, char **argv)
 
                 case MESSAGE_TYPE_NO_WORK:
                 {
+                    uint recv;
+                    MPI_Recv(&recv, 1, MPI_UNSIGNED, 0, MESSAGE_TYPE_NO_WORK, MPI_COMM_WORLD, &recv_status);
+
                     std::cout << "No work received, ending process #" << rank << std::endl;
                     running = false;
                     break;
@@ -183,13 +183,11 @@ int MPIApplication::run(int argc, char **argv)
 
 bool MPIApplication::readAndSendData(int argc, char** argv)
 {
-    int processes;
-
     // Find out number of processes
-    MPI_Comm_size(MPI_COMM_WORLD, &processes);
+    MPI_Comm_size(MPI_COMM_WORLD, &m_processes);
 
     std::unique_ptr<InputManager> input(new InputManager);
-    std::cout << "Processes: " << processes << std::endl;
+    std::cout << "Processes: " << m_processes << std::endl;
 
     std::cout << "-------------------- Bisection width of graph --------------------" << std::endl;
 
@@ -203,7 +201,7 @@ bool MPIApplication::readAndSendData(int argc, char** argv)
         m_problem.reset(input->getProblem());
     }
     // Sent data to all processes
-    for (int i = 1; i < processes; ++i)
+    for (int i = 1; i < m_processes; ++i)
     {
         MPI_Send(&m_problem->n, 1, MPI_UNSIGNED, i, MESSAGE_TYPE_N, MPI_COMM_WORLD);
         MPI_Send(&m_problem->a, 1, MPI_UNSIGNED, i, MESSAGE_TYPE_A, MPI_COMM_WORLD);
